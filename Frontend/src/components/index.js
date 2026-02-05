@@ -13,5 +13,6 @@ import Loading from './Loading';
 import Alert from './Alert';
 
 import PageBtnContainer from './PageBtnContainer';
+import Footer from './Footer';
 
-export { FormRow, FormRowSelect, Navbar, SmallSidebar, BigSidebar, JobsContainer, Job, StatsContainer, ChartsContainer, SearchContainer, Loading, Alert, PageBtnContainer };
+export { FormRow, FormRowSelect, Navbar, SmallSidebar, BigSidebar, JobsContainer, Job, StatsContainer, ChartsContainer, SearchContainer, Loading, Alert, PageBtnContainer, Footer };

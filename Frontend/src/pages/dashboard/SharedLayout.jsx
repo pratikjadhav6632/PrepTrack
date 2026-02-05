@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import { Navbar, BigSidebar, SmallSidebar } from '../../components';
+import { Navbar, BigSidebar, SmallSidebar, Footer } from '../../components';
 
 const SharedLayout = () => {
   return (
@@ -11,6 +11,7 @@ const SharedLayout = () => {
         <div className='dashboard-page w-[95%] mx-auto py-8 px-4 lg:px-8 max-w-7xl'>
             <Outlet />
         </div>
+        <Footer />
       </div>
     </main>
   );

@@ -7,46 +7,69 @@ const { BadRequestError, NotFoundError } = require('../errors');
 const getAllJobs = async (req, res) => {
   const { status, jobType, sort, search, source } = req.query;
 
-  const queryObject = {
-    createdBy: req.user.userId,
+  const matchStage = {
+    createdBy: new mongoose.Types.ObjectId(req.user.userId),
   };
 
   if (search) {
-    queryObject.company = { $regex: search, $options: 'i' };
+    matchStage.company = { $regex: search, $options: 'i' };
   }
   if (status && status !== 'all') {
-    queryObject.status = status;
+    matchStage.status = status;
   }
   if (jobType && jobType !== 'all') {
-    queryObject.jobType = jobType;
+    matchStage.jobType = jobType;
   }
   if (source && source !== 'all') {
-    queryObject.source = source;
+    matchStage.source = source;
   }
 
-  let result = Job.find(queryObject);
+  // Determine sort order
+  let sortStage = {};
+  
+  // Custom logic: Rejected jobs always at the bottom
+  // We want non-rejected (isRejected: 0) to come before rejected (isRejected: 1)
+  // Then we apply the user-selected sort within those groups.
+  
+  const sortOptions = {
+    latest: { updatedAt: -1 },
+    oldest: { updatedAt: 1 },
+    'a-z': { position: 1 },
+    'z-a': { position: -1 },
+  };
 
-  if (sort === 'latest') {
-    result = result.sort('-updatedAt');
-  }
-  if (sort === 'oldest') {
-    result = result.sort('updatedAt');
-  }
-  if (sort === 'a-z') {
-    result = result.sort('position');
-  }
-  if (sort === 'z-a') {
-    result = result.sort('-position');
-  }
+  const secondarySort = sortOptions[sort] || sortOptions.latest;
+
+  sortStage = {
+    isRejected: 1, // 0 comes first (non-rejected), 1 comes last (rejected)
+    ...secondarySort
+  };
 
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
   const skip = (page - 1) * limit;
 
-  result = result.skip(skip).limit(limit);
-
-  const jobs = await result;
-  const totalJobs = await Job.countDocuments(queryObject);
+  let jobs = await Job.aggregate([
+    { $match: matchStage },
+    {
+      $addFields: {
+        isRejected: {
+          $cond: { if: { $eq: ['$status', 'Rejected'] }, then: 1, else: 0 }
+        }
+      }
+    },
+    { $sort: sortStage },
+    { $skip: skip },
+    { $limit: limit }
+  ]);
+  
+  // We need total count and numPages as well.
+  // Since we are using aggregate for data, checking count separately or using facet.
+  // Facet is cleaner but let's stick to separate count for simplicity if we didn't want to overhaul everything,
+  // BUT regular countDocuments doesn't know about the custom sort (which doesn't affect count, only order)
+  // so we can still use countDocuments for total.
+  
+  const totalJobs = await Job.countDocuments(matchStage);
   const numOfPages = Math.ceil(totalJobs / limit);
 
   res.status(StatusCodes.OK).json({ jobs, totalJobs, numOfPages });

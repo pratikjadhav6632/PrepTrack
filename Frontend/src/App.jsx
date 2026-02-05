@@ -6,7 +6,7 @@ import './index.css';
 
 // Pages
 import { Landing, Register, Error, ProtectedRoute } from './pages';
-import { AddJob, Profile, Stats, SharedLayout, Tracker, JobDetails } from './pages/dashboard';
+import { AddJob, Profile, Stats, SharedLayout, Tracker, JobDetails, InterviewPrep, InterviewGuide, SearchJobs } from './pages/dashboard';
 
 function App() {
   return (
@@ -21,7 +21,10 @@ function App() {
           <Route index element={<Stats />} />
           <Route path='add-job' element={<AddJob />} />
           <Route path='tracker' element={<Tracker />} />
+          <Route path='search-jobs' element={<SearchJobs />} />
           <Route path='job/:id' element={<JobDetails />} />
+          <Route path='interview-prep' element={<InterviewPrep />} />
+          <Route path='interview-guide' element={<InterviewGuide />} />
           <Route path='profile' element={<Profile />} />
         </Route>
         <Route path='*' element={<Error />} />
