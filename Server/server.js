@@ -38,7 +38,7 @@ app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
 const port = process.env.PORT || 5000;
-const url="mongodb://localhost:27017/job-tracker";
+const url=process.env.MONGO_URI;
 const start = async () => {
   try {
     await connectDB(url).then(()=>{
